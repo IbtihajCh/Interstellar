@@ -2,11 +2,11 @@ game_state = {
     "current_room" : "Admin",
     "inventory" : [],
     "tasks": {
-        "Cafe": {"status": "incomplete", "description": "You need a Cafe Key to enter the cafe", "item":"CafeKey"},
-        "Electrical": {"status": "incomplete", "description": "You need a ToolBox to repair Electricity", "item":"ToolBox"},
-        "Engine": {"status": "incomplete", "description": "You need a PowerCore to repair the engines", "item":"PowerCore"},
-        "O2": {"status":"incomplete", "description": "You need a LaserGun to repair the engines", "item":"LaserGun"},
-        "Navigation": {"status": "incomplete", "description": "You need to complete the word. Hints are in different rooms", "word":"Imposter"},
+        "Cafe": {"status": "incomplete", "description": "\nTask: You need a Cafe Key to enter the cafe", "item":"CafeKey"},
+        "Electrical": {"status": "incomplete", "description": "\nTask: You need a ToolBox to repair Electricity", "item":"ToolBox"},
+        "Engine": {"status": "incomplete", "description": "\nTask: You need a PowerCore to repair the engines", "item":"PowerCore"},
+        "O2": {"status":"incomplete", "description": "\nTask: You need a LaserGun to kill the Alien", "item":"LaserGun"},
+        "Navigation": {"status": "incomplete", "description": "\nTask: You need to complete the word. Hints are in different rooms", "word":"Imposter"},
     },
     "rooms" : {
         "Admin": {
@@ -64,10 +64,7 @@ def show_room_description(room):
     print(f"\nYou are in {room}.")
     print(game_state["rooms"][room]["description"])
     exits = game_state["rooms"][room]["exits"]
-    print("Exits: " + ", ".join(exits.keys()))
-    if game_state["rooms"][room]["items"]:
-        print("Items available: " + ", ".join(game_state["rooms"][room]["items"]))
-
+    
 
 def move(direction):
     current_room = game_state["current_room"]
@@ -84,6 +81,14 @@ def move(direction):
                 print("Everything looks Good!")
     else:
         print("You can't go that way.")
+
+def look(room=None):
+    print(game_state["rooms"][room]["description"])
+    print("\nExits: ")
+    for exit, exit_room in game_state["rooms"][room]["exits"].items():
+        print(f"-{exit}: {exit_room}")
+    if game_state["rooms"][room]["items"]:
+        print("\nItems available: " + ", ".join(game_state["rooms"][room]["items"]))
 
 def task():
     room = game_state["current_room"]
@@ -102,6 +107,18 @@ def pick_up_item(item):
             return
     print(f"There is no {item} here.")
 
+def drop_item(item):
+    current_room = game_state["current_room"]
+    item_name_lower = item.lower()
+
+    if item_name_lower in [item.lower() for item in game_state["inventory"]]:
+        item_to_drop = next(item for item in game_state["inventory"] if item.lower() == item_name_lower)
+        game_state["inventory"].remove(item_to_drop)
+        game_state["rooms"][current_room]["items"].append(item_to_drop)
+        print(f"You dropped {item_to_drop}.")
+    else:
+        print(f"You don't have {item}.")
+
 def show_inventory():
     if game_state["inventory"]:
         print("Inventory: " + ", ".join(game_state["inventory"]))
@@ -114,7 +131,7 @@ def play_game():
     show_room_description(game_state["current_room"])
 
     while True:
-        command = input("\nWhat would you like to do? (move [north/south/east/west], pick [item], inventory, exit): ").lower().split()
+        command = input("\nWhat would you like to do?: ").lower().split()
 
         if command[0] == "move":
             if len(command) > 1:
@@ -127,9 +144,18 @@ def play_game():
                 pick_up_item(" ".join(command[1:]))
             else:
                 print("Please specify an item to pick up.")
+
+        elif command[0] == "drop":
+            if len(command)>1:
+                drop_item(" ".join(command[1:]))
+            else:
+                print("Please specify an item to drop.")
         
         elif command[0] == "inventory":
             show_inventory()
+        
+        elif command[0] == "look":
+            look(game_state["current_room"])
         
         elif command[0] == "exit":
             print("Exiting game. Thanks for playing!")
