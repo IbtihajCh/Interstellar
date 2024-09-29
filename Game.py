@@ -106,6 +106,7 @@ game_state = {
 def save_game():
     with open("game_state.json", "w") as f:
         json.dump(game_state, f)
+    print("Game Saved Successfully!")
 
 def load_game():
     global game_state
@@ -117,11 +118,24 @@ def load_game():
     except FileNotFoundError:
         print("No saved game found. Starting a new game.")
 
+def quit_game():
+    save_game()
+    print("Thank you for playing!")
+    exit()
+    
+
+def help():  
+    commands = ["move", "take", "drop", "inventory", "examine", "task", "look", "quit", "help"]
+    print("Available commands: ", ", ".join(commands))
+
+
+
 def show_room_description(room):
     print(f"\nYou are in {room}.")
     print(game_state["rooms"][room]["description"])
     exits = game_state["rooms"][room]["exits"]
     
+
 
 def move(direction):
     current_room = game_state["current_room"]
@@ -142,6 +156,8 @@ def move(direction):
     else:
         print("You can't go that way.")
 
+
+
 def look(room=None):
     print(game_state["rooms"][room]["description"])
     print("\nExits: ")
@@ -150,12 +166,16 @@ def look(room=None):
     if game_state["rooms"][room]["items"]:
         print("\nItems available: " + ", ".join(game_state["rooms"][room]["items"]))
 
+
+
 def task():
     room = game_state["current_room"]
     if game_state["tasks"][room]["status"] == "incomplete":
         print(game_state["tasks"][room]["description"])
     else:
         return
+
+
 
 def pick_up_item(item):
     current_room = game_state["current_room"]
@@ -166,6 +186,8 @@ def pick_up_item(item):
             print(f"{i} was added to your inventory.")
             return
     print(f"There is no {item} here.")
+
+
 
 def drop_item(item):
     current_room = game_state["current_room"]
@@ -178,6 +200,8 @@ def drop_item(item):
         print(f"You dropped {item_to_drop}.")
     else:
         print(f"You don't have {item}.")
+
+
 
 def use_item(item):
     item = item.lower()
@@ -217,7 +241,10 @@ def use_item(item):
     else:
         print("You don't have that item in your Inventory.")
 
+
+
 def examine(item):
+    
     item = item.lower()  
     current_room = game_state["current_room"]
     if item in [i.lower() for i in game_state["rooms"][current_room]["items"]]:
@@ -233,12 +260,16 @@ def examine(item):
     else:
         print(f"There is no {item} here.")
 
+
+
 def show_inventory():
     
     if game_state["inventory"]:
         print("Inventory: " + ", ".join(game_state["inventory"]))
     else:
         print("Your inventory is empty.")
+
+
 
 
 def play_game():
@@ -286,15 +317,21 @@ def play_game():
 
         elif command[0] == "save":
             save_game()
+            continue
 
         elif command[0] == "load":
             load_game()
+            show_room_description(game_state["current_room"])
+            continue
         
-        elif command[0] == "exit":
-            print("Exiting game. Thanks for playing!")
+        elif command[0] == "help":
+            help()
+
+        elif command[0] == "quit":
+            quit_game()
             break
         
         else:
-            print("Invalid command. Try 'move', 'pick', 'inventory', or 'exit'.")
+            print("Invalid command. Use 'help' for a list of commands.")
 
 play_game()
