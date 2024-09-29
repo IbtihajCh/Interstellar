@@ -2,58 +2,91 @@ game_state = {
     "current_room" : "Admin",
     "inventory" : [],
     "tasks": {
-        "Cafe": {"status": "incomplete", "description": "\nTask: You need a Cafe Key to enter the cafe", "item":"CafeKey"},
-        "Electrical": {"status": "incomplete", "description": "\nTask: You need a ToolBox to repair Electricity", "item":"ToolBox"},
-        "Engine": {"status": "incomplete", "description": "\nTask: You need a PowerCore to repair the engines", "item":"PowerCore"},
-        "O2": {"status":"incomplete", "description": "\nTask: You need a LaserGun to kill the Alien", "item":"LaserGun"},
-        "Navigation": {"status": "incomplete", "description": "\nTask: You need to complete the word. Hints are in different rooms", "word":"Imposter"},
+        "Cafe": {"status": "incomplete",
+                  "description": "", 
+                  "item":"CafeKey"},
+
+        "Electrical": {"status": "incomplete",
+                       "description": "\nTask: You need a ToolBox to repair Electricity", 
+                       "item":"ToolBox"},
+
+        "Engine": {"status": "incomplete", 
+                   "description": "\nTask: You need a PowerCore to repair the engines", 
+                   "item":"PowerCore"},
+
+        "O2": {"status":"incomplete", 
+               "description": "\nTask: You need a LaserGun to kill the Alien", 
+               "item":"LaserGun"},
+
+        "Navigation": {"status": "incomplete", 
+                       "description": "\nTask: You need to complete the word. Hints are in different rooms", 
+                       "word":"Imposter"},
     },
+
     "rooms" : {
         "Admin": {
             "description": "The nerve center of the ship, filled with blinking consoles, star charts, and system diagnostics. A key for the Café lies on the floor. The ship feels eerily quiet as warnings flash about engine malfunctions. The soft glow of distant stars outside the main viewport gives a sense of isolation.'",
             "exits": {"north": "Hallway", "south":"O2"},
-            "items": ["CafeKey"],
+            "items": [],
+            "locked": False,
+            "task_req" : ""
         },
 
         "Hallway" : {
             "description" : "A long corridor, dimly lit, with flickering lights casting eerie shadows. The hum of the ship’s systems echoes throughout, though now it feels a little strained. The doors lead to various parts of the ship. You feel a growing sense of urgency.",
             "exits": {"north": "Cafe", "south":"Admin", "east":"Engine", "west":"Storage"},
-            "items": []
+            "items": [],
+            "locked": False,
+            "task_req" : ""
         },
         "Cafe" : {
             "description" : "Once a lively hub for the crew, this room is now deserted. Tables are overturned, and a half-empty mug sits abandoned. A vending machine hums softly in the corner, though it looks broken. The Café key you picked up earlier opens the door, and inside, you spot a torch, which might come in handy in case of emergencies—like the lights going out.",
             "exits": {"north": "Electrical", "south":"Hallway"},           
-            "items": ["Torch"]
+            "items": ["Torch"],
+            "locked": True,
+            "task_req" : "You need Cafe key to unlock this room."
         },
         "Engine" : {
             "description" : "This room houses the beating heart of the ship. The engines rumble with an irregular rhythm, and steam hisses from cracked pipes. Something is definitely wrong here. Tools and scattered debris suggest someone was trying to make a repair but abandoned the effort. The ship won't function without this getting fixed. The power core is missing and needs to be retrieved.",
             "exits": {"west":"Hallway"},
-            "items": []
+            "items": ["CafeKey"],
+            "locked": False,
+            "task_req" : ""
         },
         "Storage" : {
             "description" : "A cramped room with rows of metal shelves stacked high with crates and supplies. The hum of machines and the stale smell of metal fills the air. The Power Core is stored here, along with other vital supplies for ship repairs. You also spot a toolbox on one of the shelves, which may come in handy later.",
             "exits": {"east":"Hallway", "west":"Navigation"},            
-            "items": ["PowerCore", "ToolBox"]
+            "items": ["PowerCore", "ToolBox"],
+            "locked": False,
+            "task_req" : ""
         },
         "Electrical" : {
             "description" : "This small room is filled with exposed wires and flickering monitors. The smell of burnt circuits and the occasional spark from damaged equipment makes this a hazardous environment. You’ll need the toolbox from the Storage Room to fix the ship’s power supply. Be careful—this room is the key to restoring the lights and continuing the mission.",
             "exits": {"south":"Cafe"},            
-            "items": ["LaserGun"]
+            "items": ["LaserGun"],
+            "locked": True,
+            "task_req" : "You need Torch."
         },
         "Navigation" : {
             "description" : "A quiet, dimly lit room with a large console displaying the ship’s trajectory and various star charts. A malfunctioning navigational system blinks urgently, displaying coordinates that don’t make sense. To proceed, you'll need to solve a puzzle involving the star charts to realign the ship's course and unlock further data about your mission’s destination.",
             "exits": {"east":"Storage"},
-            "items": []
+            "items": [],
+            "locked": True,
+            "task_req" : "Complete All Tasks first."
         },
         "O2" : {
             "description" : "A small, vital room filled with oxygen tanks and air-purification systems. The hiss of leaking gas fills the air, but something feels off. You can see faint signs of tampering. You notice the air thinning—this could get dangerous quickly. The room seems to have been disturbed recently.",
             "exits": {"north": "Admin", "east":"MedBay"},
-            "items": []
+            "items": [],
+            "locked": True,
+            "task_req" : "Fix the Electrical System."
         },
         "MedBay" : {
             "description" : "A sterile white room with medical beds and equipment neatly arranged. The faint smell of antiseptic lingers. It seems untouched by the chaos, but you feel a wave of unease. You know you may need this room if things turn worse.",
             "exits": {"west":"O2"},            
-            "items": ["First Aid"]
+            "items": ["FirstAid"],
+            "locked": False,
+            "task_req" : ""
         }
     } 
     
@@ -69,19 +102,21 @@ def show_room_description(room):
 def move(direction):
     current_room = game_state["current_room"]
     exits = game_state["rooms"][current_room]["exits"]
-    
+
     if direction in exits:
-        game_state["current_room"] = exits[direction]
-        show_room_description(game_state["current_room"])
-        
-        if game_state["current_room"] in game_state["tasks"]:
-            if game_state["tasks"][game_state["current_room"]]["status"] == "incomplete":
-                task()
-            else:
-                print("Everything looks Good!")
+        next_room = exits[direction]
+        if game_state["rooms"][next_room]["locked"]:
+            print(game_state["rooms"][next_room]["task_req"])
+        else:
+            game_state["current_room"] = next_room
+            show_room_description(game_state["current_room"])
+            if game_state["current_room"] in game_state["tasks"]:
+                if game_state["tasks"][game_state["current_room"]]["status"] == "incomplete":
+                    task()
+                else:
+                    print("Everything looks Good!")
     else:
         print("You can't go that way.")
-
 def look(room=None):
     print(game_state["rooms"][room]["description"])
     print("\nExits: ")
@@ -119,6 +154,37 @@ def drop_item(item):
     else:
         print(f"You don't have {item}.")
 
+def use_item(item):
+    item = item.lower()
+    current_room = game_state["current_room"]
+    if item == "cafekey" and current_room == "Hallway" and game_state["rooms"]["Cafe"]["locked"]:
+        game_state["rooms"]["Cafe"]["locked"] = False
+        game_state["inventory"] = [i for i in game_state["inventory"] if i.lower() != item]
+        print("You used the CafeKey to unlock the Cafe.")
+
+    elif item == "powercore" and current_room == "Engine" and game_state["tasks"]["Engine"]["status"] == "incomplete":
+        game_state["tasks"]["Engine"]["status"] = "complete"
+        game_state["inventory"] = [i for i in game_state["inventory"] if i.lower() != item]
+        print("You used the PowerCore to repair the engines.")
+
+    elif item == "toolbox" and current_room == "Electrical" and game_state["tasks"]["Electrical"]["status"] == "incomplete":
+        game_state["tasks"]["Electrical"]["status"] = "complete"
+        game_state["inventory"] = [i for i in game_state["inventory"] if i.lower() != item]
+        print("You used the ToolBox to fix the Electrical system.")
+
+    elif item == "lasergun" and current_room == "O2" and game_state["tasks"]["O2"]["status"] == "incomplete":
+        game_state["tasks"]["O2"]["status"] = "complete"
+        game_state["inventory"] = [i for i in game_state["inventory"] if i.lower() != item]
+        print("You used the LaserGun to kill the alien.")
+
+    elif item == "firstaid":
+        print("You use the first aid kit to heal yourself.")
+        game_state["inventory"] = [i for i in game_state["inventory"] if i.lower() != item]
+
+    else:
+        print("You can't use that item here.")
+
+
 def show_inventory():
     if game_state["inventory"]:
         print("Inventory: " + ", ".join(game_state["inventory"]))
@@ -144,6 +210,12 @@ def play_game():
                 pick_up_item(" ".join(command[1:]))
             else:
                 print("Please specify an item to pick up.")
+
+        elif command[0] == "use":
+            if len(command) > 1:
+                use_item(" ".join(command[1:]))
+            else:
+                print("Please specify an item to use.")
 
         elif command[0] == "drop":
             if len(command)>1:
