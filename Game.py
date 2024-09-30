@@ -2,7 +2,7 @@ import json
 
 game_state = {
     "current_room" : "Admin",
-    "inventory" : [],
+    "inventory" : ["CafeKey","FirstAid","Torch","LaserGun","ToolBox","PowerCore"],
     "tasks": {
         "Cafe": {"status": "incomplete",
                   "description": "", 
@@ -32,6 +32,7 @@ game_state = {
         "LaserGun" : {"description": "A laser gun that can be used to kill the alien."},
         "FirstAidKit" : {"description":"A first aid kit that can be used to heal yourself."},
         "Torch" : {"description":"A torch that can be used to see when electricity malfunctions."},
+        "firstAid" : {"description":"A first aid kit that can be used to heal yourself."}
     },
 
     "rooms" : {
@@ -220,6 +221,7 @@ def use_item(item):
         elif item == "toolbox" and current_room == "Electrical" and game_state["tasks"]["Electrical"]["status"] == "incomplete":
             game_state["tasks"]["Electrical"]["status"] = "complete"
             game_state["inventory"] = [i for i in game_state["inventory"] if i.lower() != item]
+            game_state["rooms"]["O2"]["locked"] = False
             print("You used the ToolBox to fix the Electrical system.")
 
         elif item == "torch" and current_room == "Cafe" and game_state["rooms"]["Electrical"]["locked"]:
@@ -235,6 +237,7 @@ def use_item(item):
         elif item == "firstaid":
             print("You use the first aid kit to heal yourself.")
             game_state["inventory"] = [i for i in game_state["inventory"] if i.lower() != item]
+            game_state["rooms"]["Navigation"]["locked"] = False
 
         else:
             print("You can't use that item.")
@@ -269,6 +272,35 @@ def show_inventory():
     else:
         print("Your inventory is empty.")
 
+
+def navigation():
+    print("You are currently in the Navigation system.")
+    print("You need to fix the navigation to progress.")
+    print("You can try to fix it by solving a puzzle.")
+    print("The puzzle is to find a word that is hidden among the room descriptions.")
+    print("If you think you know the word, type 'answer' to submit it.")
+
+    while True:
+        command = input("What would you like to do? ").lower().split()
+
+        if command[0] == "answer":
+            answer = input("Enter your answer: ")
+            check_puzzle_answer(answer)
+            if game_state["game_over"]:
+                break
+        elif command[0] == "hint":
+            print("Here's a hint: the word is hidden in plain sight.")
+        else:
+            print("Invalid command. Try 'answer' or 'hint'.")
+
+def check_puzzle_answer(answer):
+    if answer.lower() == "imposter":
+        print(" Congratulations! You've solved the puzzle!")
+        print("Navigation is now fixed, and all tasks are completed.")
+        print("You've won the game!")
+        game_state["game_over"] = True
+    else:
+        print("Sorry, that's not the correct answer. Try again!")
 
 
 
@@ -323,6 +355,9 @@ def play_game():
             load_game()
             show_room_description(game_state["current_room"])
             continue
+
+        elif command[0] == "puzzle":
+            navigation()
         
         elif command[0] == "help":
             help()
